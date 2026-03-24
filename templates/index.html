@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Retention Dashboard - Netflix India</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>AI Retention Engine</h1>
+        <p class="subtitle">Automated Churn Prediction & Retention Strategies</p>
+        <p class="live">Last Updated: {{ server_time }}</p>
+    </header>
+
+    <main>
+        <div class="user-grid">
+            {% for user in users %}
+            <div class="user-card">
+                <div class="card-header">
+                    <h2>{{ user.name }}</h2>
+                    <span class="badge badge-{{ user.risk.lower() }}">{{ user.risk }}</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Churn Risk:</strong> {{ user.prob }}%</p>
+                    <p><strong>Reason:</strong> {{ user.reason }}</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/user/{{ user.name }}" class="btn">View Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Netflix India - AI Retention System</p>
+    </footer>
+</body>
+</html>

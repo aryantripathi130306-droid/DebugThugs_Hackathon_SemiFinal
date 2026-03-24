@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.name }} - Retention Analysis</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>{{ user.name }} - Churn Analysis</h1>
+        <a href="/" class="back-btn">&larr; Back to Dashboard</a>
+    </header>
+
+    <main>
+        <div class="detail-grid">
+            <div class="detail-card">
+                <h3>Churn Score</h3>
+                <div class="risk-value risk-{{ user.risk.lower() }}">{{ user.prob }}%</div>
+                <p>Risk Level: {{ user.risk }}</p>
+            </div>
+
+            <div class="detail-card">
+                <h3>Primary Reason</h3>
+                <p>{{ user.reason }}</p>
+            </div>
+
+            <div class="detail-card">
+                <h3>Key Factors Influencing Risk</h3>
+                {% if user.factors %}
+                <ul>
+                    {% for factor in user.factors %}
+                    <li>{{ factor }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>No major risk factors detected</p>
+                {% endif %}
+            </div>
+
+            <div class="detail-card">
+                <h3>Recommended Action</h3>
+                <p>{{ user.action }}</p>
+            </div>
+
+            <div class="detail-card">
+                <h3>Recommended Content</h3>
+                <ul>
+                    {% for movie in user.recommendations %}
+                    <li>{{ movie }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="detail-card">
+                <h3>User Profile</h3>
+                <p><strong>Frequency:</strong> {{ user.frequency }} views/week</p>
+                <p><b>Days Since Last Watch:</b> {{ user.days }}</p>
+                <p><b>Favorite Genre:</b> {{ user.genre }}</p>
+            </div>
+
+            <div class="detail-card">
+                <h3>Retention Impact Simulation</h3>
+                <p><b>Without System:</b> {{ user.impact_before }}</p>
+                <p><b>With System:</b> {{ user.impact_after }}</p>
+            </div>
+
+            <div class="detail-card">
+                <h3>User Behaviour Pattern</h3>
+                <p>{{ user.behaviour }}</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Netflix India - AI Retention System</p>
+    </footer>
+</body>
+</html>
