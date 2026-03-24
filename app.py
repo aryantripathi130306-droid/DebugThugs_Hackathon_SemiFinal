@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 import requests
 import random
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -30,7 +31,6 @@ model.fit(X, y)
 # RECOMMENDATIONS FUNCTION
 # -------------------------------
 def get_recommendations(genre):
-    """Fetch movie recommendations from API with fallback"""
     genre_mapping = {
         "Thriller": "horror",
         "Action": "action",
@@ -38,11 +38,9 @@ def get_recommendations(genre):
         "Comedy": "comedy",
         "Romance": "romance"
     }
-    
-    # Get mapped genre
+
     api_genre = genre_mapping.get(genre, genre.lower())
-    
-    # Default fallback recommendations
+
     fallback_recommendations = {
         "horror": ["The Conjuring", "Insidious", "The Ring"],
         "action": ["John Wick", "Mad Max Fury Road", "Deadpool"],
@@ -50,35 +48,42 @@ def get_recommendations(genre):
         "comedy": ["Superbad", "The Hangover", "Bridesmaids"],
         "romance": ["The Notebook", "Titanic", "Pride and Prejudice"]
     }
-    
+
     try:
-        # Fetch from API
         response = requests.get(f"https://api.sampleapis.com/movies/{api_genre}", timeout=5)
         if response.status_code == 200:
             movies = response.json()
-            # Extract top 3 movie titles
-            recommendations = [movie.get("title", movie.get("name", "Unknown")) for movie in movies[:3]]
-            return recommendations if recommendations else fallback_recommendations.get(api_genre, ["Movie Recommendation 1", "Movie Recommendation 2", "Movie Recommendation 3"])
-    except Exception as e:
-        pass  # Silently fall back to static recommendations
-    
-    # Return fallback recommendations
-    return fallback_recommendations.get(api_genre, ["Movie Recommendation 1", "Movie Recommendation 2", "Movie Recommendation 3"])
+            recommendations = [
+                movie.get("title", movie.get("name", "Unknown"))
+                for movie in movies[:3]
+            ]
+            return recommendations if recommendations else fallback_recommendations.get(api_genre)
+    except:
+        pass
+
+    return fallback_recommendations.get(api_genre, ["Movie 1", "Movie 2", "Movie 3"])
 
 # -------------------------------
 # DYNAMIC USERS FUNCTION
 # -------------------------------
 def fetch_dynamic_users():
-    """Fetch users from randomuser.me API with random attributes"""
     genres = ["Action", "Thriller", "Drama", "Comedy", "Romance"]
-    platforms_list = [["Netflix", "Prime", "Hotstar"], ["Netflix", "Netflix", "Netflix"], 
-                      ["Netflix", "Prime"], ["Netflix", "Netflix"], ["Netflix", "Disney+"]]
-    
+    platforms_list = [
+        ["Netflix", "Prime", "Hotstar"],
+        ["Netflix", "Netflix", "Netflix"],
+        ["Netflix", "Prime"],
+        ["Netflix", "Netflix"],
+        ["Netflix", "Disney+"]
+    ]
+
     try:
-        response = requests.get("https://randomuser.me/api/?results=5", timeout=5)
+        # ✅ UPDATED: Indian users only
+        response = requests.get("https://randomuser.me/api/?results=5&nat=in", timeout=5)
+
         if response.status_code == 200:
             api_users = response.json().get("results", [])
             users = []
+
             for user in api_users:
                 users.append({
                     "name": f"{user['name']['first'].capitalize()} {user['name']['last'].capitalize()}",
@@ -87,14 +92,16 @@ def fetch_dynamic_users():
                     "genre": random.choice(genres),
                     "platforms": random.choice(platforms_list)
                 })
+
             return users if users else fallback_users()
-    except Exception as e:
+
+    except:
         pass
-    
+
     return fallback_users()
 
+
 def fallback_users():
-    """Fallback hardcoded users if API fails"""
     return [
         {"name": "Rahul Kumar", "frequency": 1, "days": 6, "genre": "Thriller", "platforms": ["Netflix", "Prime", "Hotstar"]},
         {"name": "Aman Singh", "frequency": 3, "days": 2, "genre": "Action", "platforms": ["Netflix", "Netflix", "Netflix"]},
@@ -107,22 +114,17 @@ def fallback_users():
 # SERVER TIME FUNCTION
 # -------------------------------
 def get_server_time():
-    """Fetch current time from worldtimeapi.org"""
     try:
         response = requests.get("http://worldtimeapi.org/api/timezone/Asia/Kolkata", timeout=5)
         if response.status_code == 200:
             data = response.json()
             datetime_str = data.get("datetime", "")
             if datetime_str:
-                # Parse and format: 2024-03-24T15:30:45.123456+05:30 -> Mar 24, 2024 3:30 PM
-                from datetime import datetime
                 dt = datetime.fromisoformat(datetime_str.replace("+05:30", ""))
                 return dt.strftime("%b %d, %Y %I:%M %p IST")
-    except Exception as e:
+    except:
         pass
-    
-    # Fallback to system time
-    from datetime import datetime
+
     return datetime.now().strftime("%b %d, %Y %I:%M %p IST")
 
 # -------------------------------
@@ -176,13 +178,12 @@ def analyze_user(user):
 
     if risk == "High":
         action = "Offer ₹99 Weekend Plan"
-        recommendations = get_recommendations(user['genre'])
     elif risk == "Medium":
         action = "Send engagement notification"
-        recommendations = get_recommendations(user['genre'])
     else:
         action = "No action required"
-        recommendations = get_recommendations(user['genre'])
+
+    recommendations = get_recommendations(user['genre'])
 
     return {
         "name": user["name"],
@@ -215,5 +216,8 @@ def user_detail(name):
             data = analyze_user(u)
             return render_template("user.html", user=data)
 
+# -------------------------------
+# RUN APP
+# -------------------------------
 if __name__ == "__main__":
     app.run(debug=True)
